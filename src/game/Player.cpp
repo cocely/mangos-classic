@@ -9501,7 +9501,7 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
         {
             // bad - inefficient way to load data
             if(uint32 entry = sTransmogrification.GetDisplayItemEntry(this, pItem->GetGUIDLow()))
-                SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
+                SetUInt32Value(VisibleBase + 0, Entry);
             else
                 SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
         }
