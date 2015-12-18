@@ -24,6 +24,7 @@
 #include "ItemEnchantmentMgr.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "Transmog/Transmog.h"
 
 void AddItemsSetItem(Player* player, Item* item)
 {
@@ -522,6 +523,10 @@ void Item::DeleteFromDB()
 
     SqlStatement stmt = CharacterDatabase.CreateStatement(delItem, "DELETE FROM item_instance WHERE guid = ?");
     stmt.PExecute(GetGUIDLow());
+    
+    // Transmogrification system
+    if(sTransmogrification.IsEnabled())
+        sTransmogrification.DeleteItemFromDB(GetOwner(), GetGUIDLow());
 }
 
 void Item::DeleteFromInventoryDB()
