@@ -61,6 +61,7 @@
 #include "DBCStores.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "Transmog/Transmog.h"
 
 #include <cmath>
 
@@ -7624,6 +7625,27 @@ Item* Player::GetItemByPos(uint8 bag, uint8 slot) const
     }
     return nullptr;
 }
+Bag* Player::GetBagByPos(uint8 bag) const
+{
+    if ((bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END)
+        || (bag >= BANK_SLOT_BAG_START && bag < BANK_SLOT_BAG_END))
+        if (Item* item = GetItemByPos(INVENTORY_SLOT_BAG_0, bag))
+            //return item->GetContainer();
+            if(item->GetProto()->InventoryType == INVTYPE_BAG)
+                return reinterpret_cast<Bag*>(item);
+
+    return NULL;
+}
+
+uint32 Player::GetItemDisplayIdInSlot(uint8 bag, uint8 slot) const
+{
+    const Item* pItem = GetItemByPos(bag, slot);
+
+    if (!pItem)
+        return 0;
+
+    return pItem->GetProto()->DisplayInfoID;
+}
 
 Item* Player::GetWeaponForAttack(WeaponAttackType attackType, bool nonbroken, bool useable) const
 {
@@ -9475,8 +9497,14 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
         SetGuidValue(PLAYER_VISIBLE_ITEM_1_CREATOR + (slot * MAX_VISIBLE_ITEM_OFFSET), pItem->GetGuidValue(ITEM_FIELD_CREATOR));
 
         int VisibleBase = PLAYER_VISIBLE_ITEM_1_0 + (slot * MAX_VISIBLE_ITEM_OFFSET);
-        SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
-
+        if(sTransmogrification.IsEnabled())
+        {
+            // bad - inefficient way to load data
+            if(uint32 entry = sTransmogrification.GetDisplayItemEntry(this, pItem->GetGUIDLow()))
+                SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
+            else
+                SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
+        }
         for (int i = 0; i < MAX_INSPECTED_ENCHANTMENT_SLOT; ++i)
             SetUInt32Value(VisibleBase + 1 + i, pItem->GetEnchantmentId(EnchantmentSlot(i)));
 
@@ -9587,6 +9615,8 @@ void Player::MoveItemFromInventory(uint8 bag, uint8 slot, bool update)
 {
     if (Item* it = GetItemByPos(bag, slot))
     {
+           if(sTransmogrification.IsEnabled())
+    	    sTransmogrification.DeleteItemFromDB(this, it->GetGUIDLow());
         ItemRemovedQuestCheck(it->GetEntry(), it->GetCount());
         RemoveItem(bag, slot, update);
         it->RemoveFromUpdateQueueOf(this);
