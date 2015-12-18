@@ -63,6 +63,7 @@
 #include "CharacterDatabaseCleaner.h"
 #include "CreatureLinkingMgr.h"
 #include "Weather.h"
+#include "Transmog/Transmog.h"
 
 INSTANTIATE_SINGLETON_1(World);
 
@@ -787,7 +788,10 @@ void World::LoadConfigSettings(bool reload)
     std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds", "");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: MMap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
-
+    
+    setConfig(CONFIG_BOOL_TRANSMOG_ENABLED, "Transmogrification.Enabled", false);
+    sLog.outString("WORLD: Transmogrification system %sabled", getConfig(CONFIG_BOOL_TRANSMOG_ENABLED) ? "en" : "dis");
+    
     sLog.outString();
 }
 
@@ -1257,6 +1261,13 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Initialize AuctionHouseBot...");
     sAuctionBot.Initialize();
+    // Transmogrification system
+    if(getConfig(CONFIG_BOOL_TRANSMOG_ENABLED))
+	{
+       sLog.outString("Loading Transmogrifications...");
+        sTransmogrification.Initialize();
+	}
+
     sLog.outString();
 
     sLog.outString("---------------------------------------");
