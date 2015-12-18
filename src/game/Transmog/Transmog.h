@@ -48,7 +48,7 @@ class Transmogrification
 	bool IsEnabled() { return sWorld.getConfig(CONFIG_BOOL_TRANSMOG_ENABLED); }
 
         private:
-            typedef UNORDERED_MAP<uint32, uint32> TransmogMap;
+            typedef std::unordered_map<uint32, uint32> TransmogMap;
             TransmogMap m_transmogMap;
 };
 
